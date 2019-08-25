@@ -17,7 +17,14 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <div class="row">
         <div class="col-lg-5">
-            <?php $form = ActiveForm::begin(['id' => 'form-signup']); ?>
+            <?php $form = ActiveForm::begin([
+                'id' => 'form-signup',
+                'options' => [
+                    'enctype' => 'multipart/form-data'
+                ],
+            ]); ?>
+
+                <?= $form->field($model, 'avatar')->fileInput() ?>
 
                 <?= $form->field($model, 'username')->textInput(['autofocus' => true]) ?>
 
