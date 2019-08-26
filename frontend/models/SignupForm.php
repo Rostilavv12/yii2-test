@@ -10,9 +10,11 @@ use common\models\User;
  */
 class SignupForm extends Model
 {
+    public $avatar;
     public $username;
     public $email;
     public $password;
+    public $captcha;
 
 
     /**
@@ -21,19 +23,25 @@ class SignupForm extends Model
     public function rules()
     {
         return [
+            ['avatar', 'image', 'skipOnEmpty' => false, 'extensions' => 'png, jpg'],
+
             ['username', 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
+            ['username', 'unique', 'targetClass' => User::class,
+                'message' => 'This username has already been taken.'],
             ['username', 'string', 'min' => 2, 'max' => 255],
 
             ['email', 'trim'],
             ['email', 'required'],
             ['email', 'email'],
             ['email', 'string', 'max' => 255],
-            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This email address has already been taken.'],
+            ['email', 'unique', 'targetClass' => User::class,
+                'message' => 'This email address has already been taken.'],
 
             ['password', 'required'],
             ['password', 'string', 'min' => 6],
+
+            ['captcha', 'captcha'],
         ];
     }
 
@@ -44,17 +52,20 @@ class SignupForm extends Model
      */
     public function signup()
     {
-        if (!$this->validate()) {
+        if (!$this->upload()) {
+
             return null;
         }
-        
+
         $user = new User();
         $user->username = $this->username;
         $user->email = $this->email;
+        $user->avatar = $this->avatar;
         $user->setPassword($this->password);
         $user->generateAuthKey();
         $user->generateEmailVerificationToken();
-        return $user->save() && $this->sendEmail($user);
+
+        return $user->save(false) && $this->sendEmail($user);
 
     }
 
@@ -75,5 +86,25 @@ class SignupForm extends Model
             ->setTo($this->email)
             ->setSubject('Account registration at ' . Yii::$app->name)
             ->send();
+    }
+
+    /**
+     * save avatar on server
+     *
+     * @return bool
+     */
+    public function upload()
+    {
+        if ($this->validate()) {
+            $fileName = time() . '_' .
+                substr($this->avatar->baseName, 0, 241) . '.' .
+                $this->avatar->extension;
+            $this->avatar->saveAs(User::getUploadFolder() . $fileName);
+            $this->avatar = $fileName;
+
+            return true;
+        }
+
+        return false;
     }
 }

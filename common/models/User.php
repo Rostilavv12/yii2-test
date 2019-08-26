@@ -21,6 +21,7 @@ use yii\web\IdentityInterface;
  * @property integer $created_at
  * @property integer $updated_at
  * @property string $password write-only password
+ * @property integer $avatar
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -43,7 +44,7 @@ class User extends ActiveRecord implements IdentityInterface
     public function behaviors()
     {
         return [
-            TimestampBehavior::className(),
+            TimestampBehavior::class,
         ];
     }
 
@@ -53,6 +54,13 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
+
+            [['username', 'email', 'avatar'], 'required'],
+            [['username', 'email', 'avatar'], 'string', 'max' => 255],
+            ['username', 'unique'],
+            ['email', 'unique'],
+            ['avatar', 'unique'],
+
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
         ];
@@ -75,14 +83,14 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Finds user by username
+     * Finds user by email
      *
-     * @param string $username
+     * @param string $email
      * @return static|null
      */
-    public static function findByUsername($username)
+    public static function findByEmail($email)
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne(['email' => $email, 'status' => self::STATUS_ACTIVE]);
     }
 
     /**
@@ -205,5 +213,15 @@ class User extends ActiveRecord implements IdentityInterface
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    public static function getUploadFolder()
+    {
+        return Yii::getAlias('@frontend/web/uploads/');
+    }
+
+    public static function getFrontImageUrl()
+    {
+        return Yii::$app->params['frontendUrl'] . '/uploads/';
     }
 }
