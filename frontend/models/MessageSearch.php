@@ -5,30 +5,21 @@ namespace frontend\models;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\User;
+use common\models\Message;
 
 /**
- * @property integer $id
- * @property string $username
- * @property string $email
- * @property integer $avatar
- * UserSearch represents the model behind the search form of `common\models\User`.
+ * MessageSearch represents the model behind the search form of `common\models\Message`.
  */
-class UserSearch extends Model
+class MessageSearch extends Message
 {
-    public $id;
-    public $username;
-    public $email;
-    public $avatar;
-
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['id'], 'integer'],
-            [['username', 'email', 'avatar'], 'string'],
+            [['id', 'sender_id', 'recipient_id', 'status'], 'integer'],
+            [['subject'], 'safe'],
         ];
     }
 
@@ -50,16 +41,17 @@ class UserSearch extends Model
      */
     public function search($params)
     {
-        $query = User::find()
-            ->where(['<>', 'id', Yii::$app->user->id]);
+        $query = Message::find()
+        ->where([
+            'OR',
+            'sender_id' => Yii::$app->user->id,
+            'recipient_id' => Yii::$app->user->id,
+        ]);
 
         // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => [
-                'defaultPageSize' => 2,
-            ],
         ]);
 
         $this->load($params);
@@ -73,11 +65,12 @@ class UserSearch extends Model
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
+            'sender_id' => $this->sender_id,
+            'recipient_id' => $this->recipient_id,
+            'status' => $this->status,
         ]);
 
-        $query->andFilterWhere(['like', 'username', $this->username])
-            ->andFilterWhere(['like', 'email', $this->email])
-            ->andFilterWhere(['like', 'avatar', $this->avatar]);
+        $query->andFilterWhere(['like', 'subject', $this->subject]);
 
         return $dataProvider;
     }

@@ -4,6 +4,7 @@ use common\models\User;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
+
 /* @var $this yii\web\View */
 /* @var $searchModel frontend\models\UserSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -40,8 +41,19 @@ $this->params['breadcrumbs'][] = $this->title;
 
             [
                 'class' => 'yii\grid\ActionColumn',
-                'buttons' => [],
-                'template' => '',
+                'buttons' => [
+                    'message'=>function ($url, $model) {
+                        /** @var $model User */
+                        $customurl = Yii::$app->getUrlManager()->createUrl([
+                            'message/create',
+                            'recipient_id' => $model->id,
+                        ]);
+
+                        return Html::a('<span class="glyphicon glyphicon-envelope"></span>', $customurl,
+                            ['title' => Yii::t('yii', 'send message'), 'data-pjax' => '0']);
+                    }
+                ],
+                'template' => '{message}',
             ],
         ],
     ]); ?>
