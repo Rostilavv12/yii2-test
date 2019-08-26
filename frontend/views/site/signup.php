@@ -5,6 +5,7 @@
 /* @var $model \frontend\models\SignupForm */
 
 use yii\helpers\Html;
+use yii\captcha\Captcha;
 use yii\bootstrap\ActiveForm;
 
 $this->title = 'Signup';
@@ -17,7 +18,14 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <div class="row">
         <div class="col-lg-5">
-            <?php $form = ActiveForm::begin(['id' => 'form-signup']); ?>
+            <?php $form = ActiveForm::begin([
+                'id' => 'form-signup',
+                'options' => [
+                    'enctype' => 'multipart/form-data'
+                ],
+            ]); ?>
+
+                <?= $form->field($model, 'avatar')->fileInput() ?>
 
                 <?= $form->field($model, 'username')->textInput(['autofocus' => true]) ?>
 
@@ -25,8 +33,12 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 <?= $form->field($model, 'password')->passwordInput() ?>
 
+                <?= $form->field($model, 'captcha')->widget(Captcha::class, [
+                    // configure additional widget properties here
+                ]) ?>
+
                 <div class="form-group">
-                    <?= Html::submitButton('Signup', ['class' => 'btn btn-primary', 'name' => 'signup-button']) ?>
+                    <?= Html::submitButton('Отправить', ['class' => 'btn btn-primary', 'name' => 'signup-button']) ?>
                 </div>
 
             <?php ActiveForm::end(); ?>
