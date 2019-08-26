@@ -14,6 +14,7 @@ class SignupForm extends Model
     public $username;
     public $email;
     public $password;
+    public $captcha;
 
 
     /**
@@ -39,6 +40,8 @@ class SignupForm extends Model
 
             ['password', 'required'],
             ['password', 'string', 'min' => 6],
+
+            ['captcha', 'captcha'],
         ];
     }
 
@@ -62,7 +65,7 @@ class SignupForm extends Model
         $user->generateAuthKey();
         $user->generateEmailVerificationToken();
 
-        return $user->save() && $this->sendEmail($user);
+        return $user->save(false) && $this->sendEmail($user);
 
     }
 
@@ -93,12 +96,11 @@ class SignupForm extends Model
     public function upload()
     {
         if ($this->validate()) {
-            $this->avatar->saveAs(
-                Yii::getAlias('@frontend/web/uploads/') .
-                time() . '_' .
+            $fileName = time() . '_' .
                 substr($this->avatar->baseName, 0, 241) . '.' .
-                $this->avatar->extension
-            );
+                $this->avatar->extension;
+            $this->avatar->saveAs(User::getUploadFolder() . $fileName);
+            $this->avatar = $fileName;
 
             return true;
         }
